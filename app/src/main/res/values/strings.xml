@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">StockQuery</string>
+
+    <string name="main_title">Stock Market Search</string>
+    <string name="main_getquote">Get Quote</string>
+    <string name="main_clear">Clear</string>
+    <string name="main_favorites">Favorites</string>
+    <string name="main_auotrefresh">AutoRefresh</string>
+    <string name="main_sortby">Sort by</string>
+    <string name="main_order">Order</string>
+
+    <string name="detail_current">CURRENT</string>
+    <string name="detail_historical">HISTORICAL</string>
+    <string name="detail_news">NEWS</string>
+
+
+    <string-array name="sortby_array">
+        <item>Sort by</item>
+        <item>Default</item>
+        <item>Symbol</item>
+        <item>Price</item>
+        <item>Change</item>
+    </string-array>
+
+    <string-array name="order_array">
+        <item>Order</item>
+        <item>Ascending</item>
+        <item>Descending</item>
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
