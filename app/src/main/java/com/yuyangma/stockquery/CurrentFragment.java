@@ -37,13 +37,16 @@ public class CurrentFragment extends Fragment {
 
     private String symbol = "";
     // SMA, CCI, EMA...
-    private String indicator = "";
+    private String indicator = "Price";
+    private String clickedIndicator = "";
+    private String ret = "";
 
     private TextView textView;
     private Button fbBtn;
     private Button starBtn;
     private Spinner spinner;
     private WebView webView;
+    private TextView changeBtn;
 
     public CurrentFragment() {
         // Required empty public constructor
@@ -67,8 +70,11 @@ public class CurrentFragment extends Fragment {
         Log.i("onCreateView", "" + getArguments().getInt(KEY_PAGE));
         View view = inflater.inflate(R.layout.fragment_current, container, false);
         textView = (TextView) view.findViewById(R.id.fragment_stock_details);
+        changeBtn = (TextView) view.findViewById(R.id.change_btn);
         fbBtn = (Button) view.findViewById(R.id.fragment_facebook_btn);
         starBtn = (Button) view.findViewById(R.id.fragment_star_btn);
+
+
         // Spinner
         spinner = (Spinner) view.findViewById(R.id.crt_frg_spinner);
         ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(view.getContext(),
@@ -77,40 +83,27 @@ public class CurrentFragment extends Fragment {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                indicator = adapterView.getItemAtPosition(i).toString();
-                Log.i("indicator", indicator);
+                final String nextIndicator = adapterView.getItemAtPosition(i).toString();
+                Log.i("indicator", nextIndicator);
+                if (!clickedIndicator.equals(nextIndicator)) {
+                    enableChangeClickListener(nextIndicator);
+                } else {
+                    changeBtn.setTextColor(getContext().getColor(R.color.colorBlack));
+                    enableChangeClickListener(nextIndicator);
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-
             }
         });
-
         spinner.setAdapter(spinnerAdapter);
+
+
 
         starBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-//                webView.evaluateJavascript("alert(\"aaa\");", null);
-                webView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i("starBtn", "clicked");
-                        String type = "\"SMA\"";
-                        String tmpSymbol = "\"" + symbol + "\"";
-                        //MUST UPPER CASE FOR KEY MATHC.
-                        String params = type + "," + tmpSymbol;
-                        webView.evaluateJavascript("javascript:singleLine(" + params.toUpperCase() + ");" , new ValueCallback<String>() {
-                            @Override
-                            public void onReceiveValue(String value) {
-                                Log.i("eval-back", value);
-                            }
-                        });
-//                        webView.loadUrl("javascript:test()");
-                    }
-                });
 
             }
         });
@@ -124,7 +117,6 @@ public class CurrentFragment extends Fragment {
         webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         CookieManager.getInstance().removeAllCookies(null);
         CookieManager.getInstance().flush();
-
 
         webView.loadUrl("http://www-scf.usc.edu/~yuyangma/superchart.html");
         return view;
@@ -160,6 +152,35 @@ public class CurrentFragment extends Fragment {
     }
 
 
+    private void enableChangeClickListener(final String newIndicator) {
+        changeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                webView.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.i("starBtn", "clicked");
+//                        String type = "\"SMA\"";
+//                        String tmpSymbol = "\"" + symbol + "\"";
+//                        //MUST UPPER CASE FOR KEY MATHC.
+//                        String params = type + "," + tmpSymbol;
+//                        webView.evaluateJavascript("javascript:singleLine(" + params.toUpperCase() + ");" , new ValueCallback<String>() {
+//                            @Override
+//                            public void onReceiveValue(String value) {
+//                                Log.i("eval-back", value);
+//                                ret = value;
+//                            }
+//                        });
+////                        webView.loadUrl("javascript:test()");
+//                    }
+//                });
+                indicator = newIndicator;
+                clickedIndicator = indicator;
+                changeBtn.setOnClickListener(null);
+                changeBtn.setTextColor(getContext().getColor(R.color.colorGrey));
+            }
+        });
+    }
 
 
 }
