@@ -28,9 +28,21 @@
         <item>Descending</item>
     </string-array>
 
+    <string-array name="indicators_array">
+        <item>Price</item>
+        <item>SMA</item>
+        <item>EMA</item>
+        <item>MACD</item>
+        <item>RSI</item>
+        <item>ADX</item>
+        <item>CCI</item>
+    </string-array>
+
     <string name="no_symbol_error">Please enter a stock name or symbol.</string>
 
-    <string name="stock_details">Stock Details.</string>
+    <string name="stock_details">Stock Details</string>
+    <string name="indicators">Indicators</string>
+    <string name="change">Change</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

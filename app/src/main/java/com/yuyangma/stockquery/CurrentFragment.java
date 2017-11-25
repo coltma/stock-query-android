@@ -17,7 +17,11 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
@@ -29,10 +33,16 @@ import org.w3c.dom.Text;
 public class CurrentFragment extends Fragment {
 
     public static final String KEY_PAGE = "page";
+    public static final String KEY_SYMBOL = "symbol";
+
+    private String symbol = "";
+    // SMA, CCI, EMA...
+    private String indicator = "";
 
     private TextView textView;
-    private ImageButton fbBtn;
-    private ImageButton starBtn;
+    private Button fbBtn;
+    private Button starBtn;
+    private Spinner spinner;
     private WebView webView;
 
     public CurrentFragment() {
@@ -40,11 +50,10 @@ public class CurrentFragment extends Fragment {
     }
 
     @NonNull
-    public static CurrentFragment newInstance(int page) {
-
+    public static CurrentFragment newInstance(int page, String symbol) {
         Bundle args = new Bundle();
         args.putInt(KEY_PAGE, page);
-
+        args.putString(KEY_SYMBOL, symbol);
         CurrentFragment fragment = new CurrentFragment();
         fragment.setArguments(args);
         return fragment;
@@ -52,14 +61,33 @@ public class CurrentFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         Log.i("onCreateView", "" + getArguments().getInt(KEY_PAGE));
         View view = inflater.inflate(R.layout.fragment_current, container, false);
         textView = (TextView) view.findViewById(R.id.fragment_stock_details);
-        fbBtn = (ImageButton) view.findViewById(R.id.fragment_facebook_btn);
-        starBtn = (ImageButton) view.findViewById(R.id.fragment_star_btn);
+        fbBtn = (Button) view.findViewById(R.id.fragment_facebook_btn);
+        starBtn = (Button) view.findViewById(R.id.fragment_star_btn);
+        // Spinner
+        spinner = (Spinner) view.findViewById(R.id.crt_frg_spinner);
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(view.getContext(),
+                R.array.indicators_array, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                indicator = adapterView.getItemAtPosition(i).toString();
+                Log.i("indicator", indicator);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        spinner.setAdapter(spinnerAdapter);
 
         starBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,8 +98,11 @@ public class CurrentFragment extends Fragment {
                     @Override
                     public void run() {
                         Log.i("starBtn", "clicked");
-                        String symbol = "\"老马最Man\"";
-                        webView.evaluateJavascript("javascript:test(" + symbol + ");" , new ValueCallback<String>() {
+                        String type = "\"SMA\"";
+                        String tmpSymbol = "\"" + symbol + "\"";
+                        //MUST UPPER CASE FOR KEY MATHC.
+                        String params = type + "," + tmpSymbol;
+                        webView.evaluateJavascript("javascript:singleLine(" + params.toUpperCase() + ");" , new ValueCallback<String>() {
                             @Override
                             public void onReceiveValue(String value) {
                                 Log.i("eval-back", value);
@@ -95,13 +126,15 @@ public class CurrentFragment extends Fragment {
         CookieManager.getInstance().flush();
 
 
-        webView.loadUrl("http://www-scf.usc.edu/~yuyangma/52whyOoTAT4QnM7.html");
+        webView.loadUrl("http://www-scf.usc.edu/~yuyangma/superchart.html");
         return view;
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         int page = getArguments().getInt(KEY_PAGE);
+        symbol = getArguments().getString(KEY_SYMBOL);
+        Log.i("fragment", symbol);
 //        textView.setText("page -> " + page);
     }
 
@@ -121,7 +154,7 @@ public class CurrentFragment extends Fragment {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            view.loadUrl("javascript:var data = document.documentElement.innerHTML; console.log(data);");
+//            view.loadUrl("javascript:var data = document.documentElement.innerHTML; console.log(data);");
             Log.i("finished","test()");
         }
     }

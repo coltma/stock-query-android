@@ -30,7 +30,7 @@ public class DetailActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return CurrentFragment.newInstance(position);
+            return CurrentFragment.newInstance(position, symbol);
         }
 
         @Override
