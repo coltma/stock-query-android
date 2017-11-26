@@ -3,6 +3,7 @@ package com.yuyangma.stockquery;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
 import android.os.Handler;
 import android.os.Message;
@@ -40,11 +41,14 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static String AUTO_COMPLETE = "AUTO_COMPLETE";
+    private static String NULL = "null";
     private static final int HIDE_PROGRESS_BAR = 0;
     private static final int SHOW_PROGRESS_BAR = 1;
 
@@ -132,11 +136,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ListView + Databinding
-        ListView listView = (ListView) findViewById(R.id.favorites_list_view);
-        listView.setAdapter(new StockListAdapter(this, mockData()));
-
-
         // AutoComplete
         stockSymbolAdapter = new StockSymbolAdapter(this,
                 android.R.layout.select_dialog_item, symbols, progressBar);
@@ -152,11 +151,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("symbol", symbol);
             }
         });
+    }
 
-
-
-
-
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // ListView + Databinding
+        ListView listView = (ListView) findViewById(R.id.favorites_list_view);
+        listView.setAdapter(new StockListAdapter(this, readFavoriteListData(favorites)));
+        Log.d("favorite", "main activity onStart called.");
     }
 
     private final List<String> symbols = new ArrayList<>();
@@ -264,6 +267,30 @@ public class MainActivity extends AppCompatActivity {
                 });
         jsonArrayRequest.setTag(AUTO_COMPLETE);
         requestQueue.add(jsonArrayRequest);
+    }
+
+    private List<StockListItem> readFavoriteListData(List<StockListItem> favorites) {
+        Log.d("favorite", "main activity before read:" + favorites.toString());
+        favorites.clear();
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                getString(R.string.preference_file_key),Context.MODE_PRIVATE);
+        // check
+        Set<String> storedFavorites = new HashSet<>();
+        storedFavorites = sharedPref.getStringSet(getString(R.string.preference_symbols_key), storedFavorites);
+        Log.d("favorite", "main activity read from shared:" + storedFavorites.toString());
+        for (String key : storedFavorites) {
+            String data = sharedPref.getString(key, NULL);
+            Log.d("favorite", "main activity read shared ->:" + data);
+            if (!data.equals(NULL)) {
+                String[] arr = data.split(",");
+                favorites.add(new StockListItem(arr[0],
+                        Double.parseDouble(arr[1]),
+                        Double.parseDouble(arr[2])));
+            }
+        }
+        Log.d("favorite", "main activity after read:" + favorites.toString());
+
+        return favorites;
     }
 
 }

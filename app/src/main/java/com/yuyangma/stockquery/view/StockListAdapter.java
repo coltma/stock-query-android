@@ -53,5 +53,10 @@ public class StockListAdapter extends ViewHolderAdapter {
         ((StockListViewHolder) viewHolder).symbolTxView.setText(item.getSymbol());
         ((StockListViewHolder) viewHolder).priceTxView.setText(item.priceToStr());
         ((StockListViewHolder) viewHolder).changeTxView.setText(item.changeToStr());
+        if (item.isGain()) {
+            ((StockListViewHolder) viewHolder).changeTxView.setTextColor(context.getResources().getColor(R.color.colorGreen,null));
+        } else {
+            ((StockListViewHolder) viewHolder).changeTxView.setTextColor(context.getResources().getColor(R.color.colorRed, null));
+        }
     }
 }

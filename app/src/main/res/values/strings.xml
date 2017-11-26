@@ -44,6 +44,9 @@
     <string name="indicators">Indicators</string>
     <string name="change">Change</string>
 
+    <string name="preference_file_key">com.yuyangma.stockquery.SYMBOLS</string>
+    <string name="preference_symbols_key">symbols</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
