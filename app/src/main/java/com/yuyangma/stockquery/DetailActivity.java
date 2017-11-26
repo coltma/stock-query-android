@@ -13,10 +13,23 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class DetailActivity extends AppCompatActivity {
+    private static final String STOCK_DETAIL = "STOCK_DETAIL";
+
     private Button backHomeBtn;
     private List<String> titleList;
     private String symbol;
@@ -57,6 +70,7 @@ public class DetailActivity extends AppCompatActivity {
         titleList.add("CURRENT");
         titleList.add("HISTORICAL");
         titleList.add("NEWS");
+
 
         //Toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);

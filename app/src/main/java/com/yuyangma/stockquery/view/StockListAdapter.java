@@ -1,6 +1,7 @@
 package com.yuyangma.stockquery.view;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;

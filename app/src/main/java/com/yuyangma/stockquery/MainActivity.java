@@ -3,6 +3,7 @@ package com.yuyangma.stockquery;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ListView
+        // ListView + Databinding
         ListView listView = (ListView) findViewById(R.id.favorites_list_view);
         listView.setAdapter(new StockListAdapter(this, mockData()));
 
@@ -169,11 +170,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class StockSymbolAdapter extends ArrayAdapter<String> {
-        private String AUTO_COMPLETE = "auto_complete";
         private ArrayList<String> values;
-        private List<String> items;
-        private RequestQueue requestQueue;
-
         public StockSymbolAdapter(@NonNull Context context, int resource, List<String> items, ProgressBar progressBar) {
             super(context, resource, items);
             // Volley
@@ -201,12 +198,8 @@ public class MainActivity extends AppCompatActivity {
                 if (charSequence == null || charSequence.length() == 0) {
                     return filterResults;
                 }
-                String symbol = charSequence.toString();
+                String symbol = charSequence.toString().trim();
                 Log.i("symbolFilter", symbol);
-
-                ProgressDialog pd = new ProgressDialog(getContext());
-                pd.setIndeterminate(true);
-
                 getAutoCompleteData(symbol, stockSymbolAdapter, progressBar);
                 filterResults.values = stockSymbolAdapter.values;
                 filterResults.count = stockSymbolAdapter.values.size();
