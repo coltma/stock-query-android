@@ -128,11 +128,11 @@ public class CurrentFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        symbol = getArguments().getString(KEY_SYMBOL);
+        symbol = getArguments().getString(FreqTerm.SYMBOL_KEY);
         Log.d("onCreate", symbol);
-        isFavorited = getArguments().getBoolean(KEY_FAVORITE);
+        isFavorited = getArguments().getBoolean(FreqTerm.FAVORITE_KEY);
         // Inflate the layout for this fragment
-        Log.d("onCreateView", "" + getArguments().getInt(KEY_PAGE));
+        Log.d("onCreateView", "" + getArguments().getInt(FreqTerm.PAGE_KEY));
         View view = inflater.inflate(R.layout.fragment_current, container, false);
         textView = (TextView) view.findViewById(R.id.fragment_stock_details);
         changeBtn = (TextView) view.findViewById(R.id.change_btn);
@@ -243,7 +243,7 @@ public class CurrentFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        int page = getArguments().getInt(KEY_PAGE);
+        int page = getArguments().getInt(FreqTerm.PAGE_KEY);
 
         Log.d("Created", symbol);
 //        textView.setText("page -> " + page);
