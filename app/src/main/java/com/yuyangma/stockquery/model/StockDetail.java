@@ -122,7 +122,7 @@ public class StockDetail {
     }
 
     private String getChangeStr() {
-        return String.format("%.2f(%.2f%%)", this.change, this.changePercent);
+        return String.format("%.2f (%.2f%%)", this.change, this.changePercent);
     }
 
     private String getOpenStr() {
