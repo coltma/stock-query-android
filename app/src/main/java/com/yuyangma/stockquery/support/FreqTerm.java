@@ -14,6 +14,8 @@ public class FreqTerm {
     public static final int NO = 0;
 
     public static final String SYMBOL_KEY = "symbol";
+    public static final String PAGE_KEY = "page";
+    public static final String FAVORITE_KEY = "favorite";
     public static final String IS_FAVORITE_KEY = "isFavorite";
 
     public static final String SYMBOL_SORT = "Symbol";

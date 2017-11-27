@@ -59,7 +59,6 @@ public class CurrentFragment extends Fragment {
     private static final String MY_URL = "http://cs571.us-east-1.elasticbeanstalk.com/" +
             "getquote?outputsize=compact&symbol=";
 
-
     private String symbol = "";
     private boolean isFavorited = false;
     // SMA, CCI, EMA...
