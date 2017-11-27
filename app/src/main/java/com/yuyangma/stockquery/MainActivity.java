@@ -105,6 +105,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String symbol = ((StockListItem)stockListAdapter.getItem(i)).getSymbol();
+                startActivity(prepareIntentForDetail(symbol, true));
+            }
+        });
+
         // Volley
         requestQueue = Volley.newRequestQueue(this);
 
@@ -138,18 +146,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), R.string.no_symbol_error, Toast.LENGTH_SHORT).show();;
                     return;
                 }
-                boolean isFavorited = false;
-                for (StockListItem item : favorites) {
-                    if (item.getSymbol().equals(symbol)) {
-                        isFavorited = true;
-                        break;
-                    }
-                }
-
-                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                intent.putExtra("symbol", symbol);
-                intent.putExtra("isFavorited", isFavorited);
-                startActivity(intent);
+                startActivity(prepareIntentForDetail(symbol, checkFavorite(symbol)));
             }
         });
 
@@ -290,6 +287,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case FreqTerm.NO:
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.selected_yes),
+                        Toast.LENGTH_SHORT).show();;
                 break;
             case FreqTerm.YES:
                 String symbol = ((StockListItem)stockListAdapter.getItem(toRemovePos)).getSymbol();
@@ -298,11 +298,32 @@ public class MainActivity extends AppCompatActivity {
                 // Second, Remove from ListView.
                 stockListAdapter.remove(toRemovePos);
                 stockListAdapter.notifyDataSetChanged();
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.selected_no),
+                        Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private Intent prepareIntentForDetail(String symbol, boolean isFavorite) {
+        Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+        intent.putExtra(FreqTerm.SYMBOL_KEY, symbol);
+        intent.putExtra(FreqTerm.IS_FAVORITE_KEY, isFavorite);
+        return intent;
+    }
+
+    private boolean checkFavorite(String symbol) {
+        boolean isFavorite = false;
+        for (StockListItem item : favorites) {
+            if (item.getSymbol().equals(symbol)) {
+                isFavorite = true;
+                break;
+            }
+        }
+        return isFavorite;
     }
 
     private List<StockListItem> readFavoriteListData(List<StockListItem> favorites) {

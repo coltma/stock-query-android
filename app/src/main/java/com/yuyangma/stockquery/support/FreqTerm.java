@@ -10,4 +10,7 @@ public class FreqTerm {
 
     public static final int YES = 1;
     public static final int NO = 0;
+
+    public static final String SYMBOL_KEY = "symbol";
+    public static final String IS_FAVORITE_KEY = "isFavorite";
 }

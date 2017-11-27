@@ -19,6 +19,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.yuyangma.stockquery.support.FreqTerm;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,8 +63,8 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         Intent intent = getIntent();
-        symbol = intent.getStringExtra("symbol");
-        isFavorited = intent.getBooleanExtra("isFavorited", false);
+        symbol = intent.getStringExtra(FreqTerm.SYMBOL_KEY);
+        isFavorited = intent.getBooleanExtra(FreqTerm.IS_FAVORITE_KEY, false);
         Log.i("detail", "symbol:" + symbol + ", favorited:" + isFavorited);
 
         titleList = new ArrayList<>();
