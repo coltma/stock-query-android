@@ -1,6 +1,7 @@
 package com.yuyangma.stockquery;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,6 +39,7 @@ import com.yuyangma.stockquery.model.StockDetail;
 import com.yuyangma.stockquery.model.StockDetailItem;
 import com.yuyangma.stockquery.support.FreqTerm;
 import com.yuyangma.stockquery.adapter.StockDetailAdapter;
+import com.yuyangma.stockquery.support.WebAppInterface;
 
 import org.json.JSONObject;
 
@@ -75,6 +77,7 @@ public class CurrentFragment extends Fragment {
     private TextView changeBtn;
     private ListView listView;
     private ProgressBar progressBar;
+    private ProgressBar webViewProgressBar;
 
     private StockDetailAdapter stockDetailAdapter;
     private List<StockDetailItem> detailItems;
@@ -83,6 +86,7 @@ public class CurrentFragment extends Fragment {
     private RequestQueue requestQueue;
 
 
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -94,7 +98,14 @@ public class CurrentFragment extends Fragment {
                 case FreqTerm.SHOW_PROGRESS_BAR:
                     progressBar.setVisibility(View.VISIBLE);
                     break;
-
+                case FreqTerm.HIDE_WEBVIEW_PROGRESS_BAR:
+                    webViewProgressBar.setVisibility(View.GONE);
+                    webView.setVisibility(View.VISIBLE);
+                    break;
+                case FreqTerm.SHOW_WEBVIEW_PROGRESS_BAR:
+                    webView.setVisibility(View.GONE);
+                    webViewProgressBar.setVisibility(View.VISIBLE);
+                    break;
                 default:
                     break;
             }
@@ -137,6 +148,10 @@ public class CurrentFragment extends Fragment {
         // Progress bar
         progressBar = (ProgressBar) view.findViewById(R.id.fragment_current_progressbar);
 
+        // Webview Progress bar
+        webViewProgressBar = (ProgressBar) view.findViewById(R.id.webview_progessbar);
+        webViewProgressBar.setVisibility(View.GONE);
+
         // Spinner
         spinner = (Spinner) view.findViewById(R.id.crt_frg_spinner);
         ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(view.getContext(),
@@ -167,10 +182,6 @@ public class CurrentFragment extends Fragment {
         detailItems = new ArrayList<>();
         stockDetailAdapter = new StockDetailAdapter(getContext(), detailItems);
 
-
-//        detailItems.add(new StockDetailItem("aa","bb"));
-//        detailItems.add(new StockDetailItem("aa","bb"));
-//        detailItems.add(new StockDetailItem("aa","bb"));
         listView.setAdapter(stockDetailAdapter);
 
         // List View StockDetail
@@ -198,10 +209,6 @@ public class CurrentFragment extends Fragment {
                                 updateFavoriteList(stockDetail);
                             }
                             enableStarBtn();
-//                      adapter.add(row);
-//                      adapter.notifyDataSetChanged();
-//                      handler.sendEmptyMessage(HIDE_PROGRESS_BAR);
-//                        handler.sendEmptyMessage(HIDE_PROGRESS_BAR);
                         } else {
                             // TODO
                             return;
@@ -222,6 +229,8 @@ public class CurrentFragment extends Fragment {
 
         webView = (WebView) view.findViewById(R.id.webview_current);
         webView.setVisibility(View.GONE);
+        // Enable JavaScript call Android.
+        webView.addJavascriptInterface(new WebAppInterface(getContext(), handler), "Android");
         // Disable other broswer.
         webView.setWebViewClient(new MyWebViewClient());
 
@@ -270,9 +279,10 @@ public class CurrentFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Log.d("change", "clicked");
-                webView.setVisibility(View.VISIBLE);
+
                 indicator = newIndicator;
                 disableChangeClickListener();
+                handler.sendEmptyMessage(FreqTerm.SHOW_WEBVIEW_PROGRESS_BAR);
                 webView.post(new Runnable() {
                     @Override
                     public void run() {

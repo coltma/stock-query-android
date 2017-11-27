@@ -7,6 +7,8 @@ package com.yuyangma.stockquery.support;
 public class FreqTerm {
     public static final int HIDE_PROGRESS_BAR = 0;
     public static final int SHOW_PROGRESS_BAR = 1;
+    public static final int HIDE_WEBVIEW_PROGRESS_BAR = 2;
+    public static final int SHOW_WEBVIEW_PROGRESS_BAR = 3;
 
     public static final int YES = 1;
     public static final int NO = 0;
