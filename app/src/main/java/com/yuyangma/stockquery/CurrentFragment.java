@@ -53,9 +53,6 @@ import java.util.Set;
  * A simple {@link Fragment} subclass.
  */
 public class CurrentFragment extends Fragment {
-    private static final String KEY_PAGE = "page";
-    private static final String KEY_SYMBOL = "symbol";
-    private static final String KEY_FAVORITE = "favorite";
     private static final int POS_SYMBOL = 0;
     private static final int POS_PRICE = 1;
     private static final int POS_CHANGE = 2;
@@ -119,9 +116,9 @@ public class CurrentFragment extends Fragment {
     @NonNull
     public static CurrentFragment newInstance(int page, String symbol, boolean isFavorited) {
         Bundle args = new Bundle();
-        args.putInt(KEY_PAGE, page);
-        args.putString(KEY_SYMBOL, symbol);
-        args.putBoolean(KEY_FAVORITE, isFavorited);
+        args.putInt(FreqTerm.PAGE_KEY, page);
+        args.putString(FreqTerm.SYMBOL_KEY, symbol);
+        args.putBoolean(FreqTerm.FAVORITE_KEY, isFavorited);
         CurrentFragment fragment = new CurrentFragment();
         fragment.setArguments(args);
         return fragment;
