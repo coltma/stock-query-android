@@ -13,4 +13,10 @@ public class FreqTerm {
 
     public static final String SYMBOL_KEY = "symbol";
     public static final String IS_FAVORITE_KEY = "isFavorite";
+
+    public static final String SYMBOL_SORT = "Symbol";
+    public static final String PRICE_SORT = "Price";
+    public static final String CHANGE_SORT = "Change";
+    public static final String ASCENDING = "Ascending";
+    public static final String DESCENDING = "Descending";
 }

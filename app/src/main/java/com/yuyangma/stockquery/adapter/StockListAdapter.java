@@ -1,12 +1,10 @@
-package com.yuyangma.stockquery.view;
+package com.yuyangma.stockquery.adapter;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.yuyangma.stockquery.R;
 import com.yuyangma.stockquery.model.StockListItem;

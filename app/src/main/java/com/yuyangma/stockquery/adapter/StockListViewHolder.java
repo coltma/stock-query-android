@@ -1,4 +1,4 @@
-package com.yuyangma.stockquery.view;
+package com.yuyangma.stockquery.adapter;
 
 import android.support.annotation.NonNull;
 import android.view.View;

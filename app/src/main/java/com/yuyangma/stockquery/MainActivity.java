@@ -1,18 +1,14 @@
 package com.yuyangma.stockquery;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.databinding.DataBindingUtil;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -35,20 +31,26 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.yuyangma.stockquery.adapter.SortParamAdapter;
 import com.yuyangma.stockquery.model.StockListItem;
 import com.yuyangma.stockquery.support.FreqTerm;
-import com.yuyangma.stockquery.view.StockListAdapter;
+import com.yuyangma.stockquery.adapter.StockListAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import static com.yuyangma.stockquery.support.FreqTerm.DESCENDING;
+import static com.yuyangma.stockquery.support.FreqTerm.SYMBOL_SORT;
 
 public class MainActivity extends AppCompatActivity {
     private static String AUTO_COMPLETE = "AUTO_COMPLETE";
@@ -59,16 +61,24 @@ public class MainActivity extends AppCompatActivity {
     private int toRemovePos = -1;
     private final List<String> symbols = new ArrayList<>();
     private List<StockListItem> favorites = new ArrayList<>();
+    private String sortBy = "";
+    private String orderBy = "";
 
-    private StockSymbolAdapter stockSymbolAdapter;
+    private RequestQueue requestQueue;
+
 
     ListView listView;
     StockListAdapter stockListAdapter;
 
-    private RequestQueue requestQueue;
 
     private ProgressBar progressBar;
     private AutoCompleteTextView autoCompleteTextView;
+    private StockSymbolAdapter stockSymbolAdapter;
+    private TextView getQuoteViewBtn;
+    private TextView clearViewBtn;
+    private Spinner orderSpinner ;
+    private Spinner sortbySpinner;
+
 
     // How could I forget it!!!
     Handler handler = new Handler() {
@@ -121,25 +131,63 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.autocCompleteProgressBar);
         progressBar.setVisibility(View.GONE);
 
-
-
         // Spinners
-        Spinner sortbySpinner = (Spinner) findViewById(R.id.sortby_spinner);
-        ArrayAdapter<CharSequence> sortBySpinnerAdapter = ArrayAdapter.createFromResource(this,
-                        R.array.sortby_array, android.R.layout.simple_spinner_item);
+        // sortBy
+        sortbySpinner = (Spinner) findViewById(R.id.sortby_spinner);
+
+        final SortParamAdapter sortBySpinnerAdapter = new SortParamAdapter(this,
+                android.R.layout.simple_spinner_item,
+                getResources().getStringArray(R.array.sortby_array));
+//        ArrayAdapter<CharSequence> sortBySpinnerAdapter = ArrayAdapter.createFromResource(this,
+//                        R.array.sortby_array, android.R.layout.simple_spinner_item);
         sortBySpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortbySpinner.setAdapter(sortBySpinnerAdapter);
 
-        Spinner orderSpinner = (Spinner) findViewById(R.id.order_spinner);
-        ArrayAdapter<CharSequence> orderSpinnerAdapter = ArrayAdapter.createFromResource(this,
-                R.array.order_array, android.R.layout.simple_spinner_item);
-        orderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        orderSpinner.setAdapter(orderSpinnerAdapter);
+        sortbySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                sortBySpinnerAdapter.setSelected(i);
+                String[] sorts = getResources().getStringArray(R.array.sortby_array);
+                sortBy = sorts[i];
+                sort(favorites, sortBy, orderBy);
+            }
 
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+        // orderBy
+        orderSpinner = (Spinner) findViewById(R.id.order_spinner);
+        final SortParamAdapter orderBySpinnerAdapter = new SortParamAdapter(this,
+                android.R.layout.simple_spinner_item,
+                getResources().getStringArray(R.array.order_array));
+
+//        ArrayAdapter<CharSequence> orderSpinnerAdapter = new ArrayAdapter<CharSequence>(this,
+//                android.R.layout.simple_spinner_item,
+//                getResources().getStringArray(R.array.order_array));
+        orderBySpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        orderSpinner.setAdapter(orderBySpinnerAdapter);
+
+        orderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                orderBySpinnerAdapter.setSelected(i);
+                String[] orders = getResources().getStringArray(R.array.order_array);
+                orderBy = orders[i];
+                sort(favorites, sortBy, orderBy);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
 
         // Geoquote
-        final TextView getQuoteView = (TextView) findViewById(R.id.getquote_view);
-        getQuoteView.setOnClickListener(new View.OnClickListener() {
+        getQuoteViewBtn = (TextView) findViewById(R.id.getquote_view);
+        getQuoteViewBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (symbol == null || symbol.isEmpty()) {
@@ -150,9 +198,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Clear
+        clearViewBtn = (TextView) findViewById(R.id.clear_view);
+        clearViewBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                symbol = "";
+                autoCompleteTextView.setText("");
+            }
+        });
+
         // AutoComplete
         stockSymbolAdapter = new StockSymbolAdapter(this,
-                android.R.layout.select_dialog_item, symbols, progressBar);
+                android.R.layout.select_dialog_item, symbols);
 
         autoCompleteTextView = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
         autoCompleteTextView.setAdapter(stockSymbolAdapter);
@@ -165,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("symbol", symbol);
             }
         });
+
     }
 
     @Override
@@ -179,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class StockSymbolAdapter extends ArrayAdapter<String> {
         private ArrayList<String> values;
-        public StockSymbolAdapter(@NonNull Context context, int resource, List<String> items, ProgressBar progressBar) {
+        public StockSymbolAdapter(@NonNull Context context, int resource, List<String> items) {
             super(context, resource, items);
             // Volley
             requestQueue = Volley.newRequestQueue(this.getContext());
@@ -206,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                 if (charSequence == null || charSequence.length() == 0) {
                     return filterResults;
                 }
-                String symbol = charSequence.toString().trim();
+                String symbol = charSequence.toString().trim().toUpperCase();
                 Log.i("symbolFilter", symbol);
                 getAutoCompleteData(symbol, stockSymbolAdapter, progressBar);
                 filterResults.values = stockSymbolAdapter.values;
@@ -288,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case FreqTerm.NO:
                 Toast.makeText(getApplicationContext(),
-                        getString(R.string.selected_yes),
+                        getString(R.string.selected_no),
                         Toast.LENGTH_SHORT).show();;
                 break;
             case FreqTerm.YES:
@@ -299,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
                 stockListAdapter.remove(toRemovePos);
                 stockListAdapter.notifyDataSetChanged();
                 Toast.makeText(getApplicationContext(),
-                        getString(R.string.selected_no),
+                        getString(R.string.selected_yes),
                         Toast.LENGTH_SHORT).show();
                 break;
             default:
@@ -369,6 +428,38 @@ public class MainActivity extends AppCompatActivity {
         editor.remove(symbol);
         editor.commit();
         Log.d("favorite", "main activity after remove:" + favorites.toString());
+    }
+
+    private void sort(List<StockListItem> favorites, final String sortBy, String orderBy) {
+        // ascending or descending.
+        Log.d("sort", "sortBy:" + sortBy + ", orderBy:" + orderBy);
+        final int order = orderBy.equals(FreqTerm.ASCENDING) ? 1 : -1;
+        Collections.sort(favorites, new Comparator<StockListItem>() {
+            @Override
+            public int compare(StockListItem left, StockListItem right) {
+                int diff = 0;
+                switch (sortBy) {
+                    case FreqTerm.SYMBOL_SORT:
+                        diff = left.getSymbol().compareTo(right.getSymbol());
+                        break;
+                    case FreqTerm.PRICE_SORT:
+                        double l = left.getPrice();
+                        double r = right.getPrice();
+                        diff = l - r > 0 ? 1 : (l - r == 0 ? 0 : -1);
+                        break;
+                    // Use change percent.
+                    case FreqTerm.CHANGE_SORT:
+                        double lc = (left.getPrice() - left.getClose()) / left.getClose();
+                        double rc = (right.getPrice() - right.getClose()) / right.getClose();
+                        diff = lc - rc > 0 ? 1 : (lc - rc == 0 ? 0 : -1);
+                        break;
+                    default:
+                        break;
+                }
+                return diff * order;
+            }
+        });
+        stockListAdapter.notifyDataSetChanged();
     }
 
 }
