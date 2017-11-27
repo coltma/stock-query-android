@@ -26,6 +26,13 @@ public class StockListAdapter extends ViewHolderAdapter {
         this.data = data;
     }
 
+    public void remove(int i) {
+        if (i < 0 || i >= data.size()) {
+            return;
+        }
+        data.remove(i);
+    }
+
     @Override
     public int getCount() {
         return data.size();

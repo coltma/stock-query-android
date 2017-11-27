@@ -56,7 +56,7 @@ public class StockDetail {
 
     }
 
-    public StockDetail(JSONObject data) {
+    public boolean loadJSON(JSONObject data) {
         try {
             JSONObject metaData = data.getJSONObject(META_DATA);
             this.symbol = metaData.getString(SYMBOL).toUpperCase();
@@ -95,12 +95,15 @@ public class StockDetail {
                 }
                 i++;
             }
+            return true;
         } catch (JSONException e) {
             e.printStackTrace();
+            return false;
+
         } catch (ParseException e) {
             e.printStackTrace();
+            return false;
         }
-
     }
 
     public void createStockDetailItems(List<StockDetailItem> ans) {

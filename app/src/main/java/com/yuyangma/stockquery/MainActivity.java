@@ -14,6 +14,9 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -33,6 +36,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.yuyangma.stockquery.model.StockListItem;
+import com.yuyangma.stockquery.support.FreqTerm;
 import com.yuyangma.stockquery.view.StockListAdapter;
 
 import org.json.JSONArray;
@@ -49,12 +53,17 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
     private static String AUTO_COMPLETE = "AUTO_COMPLETE";
     private static String NULL = "null";
-    private static final int HIDE_PROGRESS_BAR = 0;
-    private static final int SHOW_PROGRESS_BAR = 1;
+
 
     private String symbol = "";
+    private int toRemovePos = -1;
+    private final List<String> symbols = new ArrayList<>();
+    private List<StockListItem> favorites = new ArrayList<>();
 
     private StockSymbolAdapter stockSymbolAdapter;
+
+    ListView listView;
+    StockListAdapter stockListAdapter;
 
     private RequestQueue requestQueue;
 
@@ -67,11 +76,10 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case HIDE_PROGRESS_BAR:
+                case FreqTerm.HIDE_PROGRESS_BAR:
                     progressBar.setVisibility(View.GONE);
                     break;
-                case SHOW_PROGRESS_BAR:
-                    // 隐藏ProcessBar。
+                case FreqTerm.SHOW_PROGRESS_BAR:
                     progressBar.setVisibility(View.VISIBLE);
                     break;
 
@@ -86,7 +94,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // ListView
+        listView = (ListView) findViewById(R.id.favorites_list_view);
+        registerForContextMenu(listView);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                toRemovePos = i;
+                return false;
+            }
+        });
 
         // Volley
         requestQueue = Volley.newRequestQueue(this);
@@ -157,20 +174,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // ListView + Databinding
-        ListView listView = (ListView) findViewById(R.id.favorites_list_view);
-        listView.setAdapter(new StockListAdapter(this, readFavoriteListData(favorites)));
+        stockListAdapter = new StockListAdapter(this, readFavoriteListData(favorites));
+        listView.setAdapter(stockListAdapter);
         Log.d("favorite", "main activity onStart called.");
     }
 
-    private final List<String> symbols = new ArrayList<>();
-    private List<StockListItem> favorites = new ArrayList<>();
-
-    private List<StockListItem> mockData() {
-        favorites.add(new StockListItem("AAPL", 239.23423, 210.3432));
-        favorites.add(new StockListItem("TSLA", 23.129, 20.987632));
-        favorites.add(new StockListItem("AMZN", 139.423, 100.3432));
-        return favorites;
-    }
 
     public class StockSymbolAdapter extends ArrayAdapter<String> {
         private ArrayList<String> values;
@@ -228,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
         final String url = "http://cs571.us-east-1.elasticbeanstalk.com/autocomplete?symbol=" + symbol;
         // Intercept.
         requestQueue.cancelAll(AUTO_COMPLETE);
-        handler.sendEmptyMessage(SHOW_PROGRESS_BAR);
+        handler.sendEmptyMessage(FreqTerm.SHOW_PROGRESS_BAR);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
@@ -249,24 +257,52 @@ public class MainActivity extends AppCompatActivity {
                                 adapter.add(row);
                             }
                             adapter.notifyDataSetChanged();
-                            handler.sendEmptyMessage(HIDE_PROGRESS_BAR);
+                            handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
 
 
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        handler.sendEmptyMessage(HIDE_PROGRESS_BAR);
+                        handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(getApplicationContext(), "Failed for:" + url, Toast.LENGTH_SHORT).show();
-                        handler.sendEmptyMessage(HIDE_PROGRESS_BAR);
+                        handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
                     }
                 });
         jsonArrayRequest.setTag(AUTO_COMPLETE);
         requestQueue.add(jsonArrayRequest);
+    }
+
+    // 	Long press a row and display a Context Menu	to Delete list item.
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle(getString(R.string.long_click_menu_title));
+        menu.add(Menu.NONE, FreqTerm.NO, menu.NONE, getString(R.string.no));
+        menu.add(Menu.NONE, FreqTerm.YES, menu.NONE, getString(R.string.yes));
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case FreqTerm.NO:
+                break;
+            case FreqTerm.YES:
+                String symbol = ((StockListItem)stockListAdapter.getItem(toRemovePos)).getSymbol();
+                // First, Remove from SharedPreference.
+                removeFromFavoriteList(symbol);
+                // Second, Remove from ListView.
+                stockListAdapter.remove(toRemovePos);
+                stockListAdapter.notifyDataSetChanged();
+                break;
+            default:
+                break;
+        }
+        return super.onContextItemSelected(item);
     }
 
     private List<StockListItem> readFavoriteListData(List<StockListItem> favorites) {
@@ -291,6 +327,27 @@ public class MainActivity extends AppCompatActivity {
         Log.d("favorite", "main activity after read:" + favorites.toString());
 
         return favorites;
+    }
+
+    private void removeFromFavoriteList(String symbol) {
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                getString(R.string.preference_file_key),Context.MODE_PRIVATE);
+        // check
+        Set<String> favorites = new HashSet<>();
+        favorites = sharedPref.getStringSet(getString(R.string.preference_symbols_key), favorites);
+        Log.d("favorite", "main activity before remove:" + favorites.toString());
+        Log.d("favorite", "main activity before remove symbol:" + symbol);
+        if (!favorites.contains(symbol)) {
+            return ;
+        }
+
+        favorites.remove(symbol);
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putStringSet(getString(R.string.preference_symbols_key), favorites);
+        editor.remove(symbol);
+        editor.commit();
+        Log.d("favorite", "main activity after remove:" + favorites.toString());
     }
 
 }

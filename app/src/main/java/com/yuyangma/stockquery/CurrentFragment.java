@@ -6,11 +6,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
@@ -24,6 +29,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -35,6 +41,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.yuyangma.stockquery.model.StockDetail;
 import com.yuyangma.stockquery.model.StockDetailItem;
+import com.yuyangma.stockquery.support.FreqTerm;
 import com.yuyangma.stockquery.view.StockDetailAdapter;
 
 import org.json.JSONException;
@@ -78,12 +85,32 @@ public class CurrentFragment extends Fragment {
     private WebView webView;
     private TextView changeBtn;
     private ListView listView;
+    private ProgressBar progressBar;
 
     private StockDetailAdapter stockDetailAdapter;
     private List<StockDetailItem> detailItems;
     private StockDetail stockDetail = null;
 
     private RequestQueue requestQueue;
+
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case FreqTerm.HIDE_PROGRESS_BAR:
+                    progressBar.setVisibility(View.GONE);
+                    break;
+                case FreqTerm.SHOW_PROGRESS_BAR:
+                    progressBar.setVisibility(View.VISIBLE);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    };
 
     public CurrentFragment() {
         // Required empty public constructor
@@ -118,6 +145,9 @@ public class CurrentFragment extends Fragment {
             starBtn.setBackground(getResources().getDrawable(R.mipmap.ic_star_filled, null));
         }
 
+        // Progress bar
+        progressBar = (ProgressBar) view.findViewById(R.id.fragment_current_progressbar);
+
         // Spinner
         spinner = (Spinner) view.findViewById(R.id.crt_frg_spinner);
         ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(view.getContext(),
@@ -147,12 +177,15 @@ public class CurrentFragment extends Fragment {
         listView = (ListView) view.findViewById(R.id.stock_detail_list_view);
         detailItems = new ArrayList<>();
         stockDetailAdapter = new StockDetailAdapter(getContext(), detailItems);
+
+
 //        detailItems.add(new StockDetailItem("aa","bb"));
 //        detailItems.add(new StockDetailItem("aa","bb"));
 //        detailItems.add(new StockDetailItem("aa","bb"));
         listView.setAdapter(stockDetailAdapter);
 
         // List View StockDetail
+        handler.sendEmptyMessage(FreqTerm.SHOW_PROGRESS_BAR);
         requestQueue = Volley.newRequestQueue(getContext());
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -165,8 +198,8 @@ public class CurrentFragment extends Fragment {
 //                      adapter.clear();
                         Log.d("before", stockDetailAdapter.getCount() + "");
 
-                        stockDetail = new StockDetail(response);
-                        if (stockDetail != null) {
+                        stockDetail = new StockDetail();
+                        if (stockDetail.loadJSON(response)) {
                             stockDetail.createStockDetailItems(detailItems);
                             Log.d("after", stockDetailAdapter.getCount() + "");
 //                        detailItems.add(new StockDetailItem("abc", "dfg"));
@@ -184,6 +217,7 @@ public class CurrentFragment extends Fragment {
                             // TODO
                             return;
                         }
+                        handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
                     }
 
 
@@ -191,7 +225,7 @@ public class CurrentFragment extends Fragment {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
+                        handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
                     }
                 }
         );

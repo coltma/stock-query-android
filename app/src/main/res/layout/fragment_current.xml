@@ -45,6 +45,12 @@
                     android:layout_width="48dp"
                     android:layout_height="match_parent" />
             </LinearLayout>
+            <ProgressBar
+                android:id="@+id/fragment_current_progressbar"
+                android:layout_marginTop="160dp"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
             <ListView
                 android:id="@+id/stock_detail_list_view"
                 android:layout_width="match_parent"
