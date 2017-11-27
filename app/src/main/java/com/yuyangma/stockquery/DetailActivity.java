@@ -36,9 +36,9 @@ public class DetailActivity extends AppCompatActivity {
     private String symbol;
     private boolean isFavorited;
 
-    private class NumberPagerAdapter extends FragmentPagerAdapter {
+    private class MyPagerAdapter extends FragmentPagerAdapter {
 
-        public NumberPagerAdapter(FragmentManager fm) {
+        public MyPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -87,7 +87,7 @@ public class DetailActivity extends AppCompatActivity {
         myToolbar.setTitle(symbol);
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.view_pager);
-        viewPager.setAdapter(new NumberPagerAdapter(getSupportFragmentManager()));
+        viewPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.view_pager_tab);
 //        tabLayout.setSelectedTabIndicatorColor();
