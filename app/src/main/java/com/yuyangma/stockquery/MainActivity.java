@@ -1,5 +1,6 @@
 package com.yuyangma.stockquery;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,10 +19,13 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.CompoundButton;
 import android.widget.Filter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,8 +34,10 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.yuyangma.stockquery.adapter.SortParamAdapter;
+import com.yuyangma.stockquery.model.StockDetail;
 import com.yuyangma.stockquery.model.StockListItem;
 import com.yuyangma.stockquery.support.FreqTerm;
 import com.yuyangma.stockquery.adapter.StockListAdapter;
@@ -39,7 +45,12 @@ import com.yuyangma.stockquery.adapter.StockListAdapter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,13 +59,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.yuyangma.stockquery.support.FreqTerm.DESCENDING;
 import static com.yuyangma.stockquery.support.FreqTerm.SYMBOL_SORT;
 
 public class MainActivity extends AppCompatActivity {
     private static String AUTO_COMPLETE = "AUTO_COMPLETE";
+    private static String UPDATE_FAVORITE = "UPDATE_FAVORITE";
     private static String NULL = "null";
+    private static final String MY_URL = "http://cs571.us-east-1.elasticbeanstalk.com/" +
+            "getquote?outputsize=compact&symbol=";
 
 
     private String symbol = "";
@@ -63,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
     private List<StockListItem> favorites = new ArrayList<>();
     private String sortBy = "";
     private String orderBy = "";
+    private ExecutorService executor;
+    private Future<?> results;
 
     private RequestQueue requestQueue;
 
@@ -72,15 +93,22 @@ public class MainActivity extends AppCompatActivity {
 
 
     private ProgressBar progressBar;
+    private ProgressBar favoritesProgressBar;
     private AutoCompleteTextView autoCompleteTextView;
     private StockSymbolAdapter stockSymbolAdapter;
     private TextView getQuoteViewBtn;
     private TextView clearViewBtn;
+    private ImageView refreshBtn;
     private Spinner orderSpinner ;
     private Spinner sortbySpinner;
+    private Switch autoFresh;
+
+    private AtomicInteger targetListSize = new AtomicInteger();
+    private AtomicInteger crtListSize = new AtomicInteger();
 
 
     // How could I forget it!!!
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -92,7 +120,14 @@ public class MainActivity extends AppCompatActivity {
                 case FreqTerm.SHOW_PROGRESS_BAR:
                     progressBar.setVisibility(View.VISIBLE);
                     break;
-
+                case FreqTerm.SHOW_FAVORITES_PROGRESS_BAR:
+                    favoritesProgressBar.setVisibility(View.VISIBLE);
+                    break;
+                case FreqTerm.HIDE_FAVORITES_PROGRESS_BAR:
+                    favoritesProgressBar.setVisibility(View.GONE);
+                    readFavoriteListData(favorites);
+                    stockListAdapter.notifyDataSetChanged();
+                    break;
                 default:
                     break;
             }
@@ -125,11 +160,47 @@ public class MainActivity extends AppCompatActivity {
 
         // Volley
         requestQueue = Volley.newRequestQueue(this);
+        requestQueue.addRequestFinishedListener(new RequestQueue.RequestFinishedListener<Object>() {
 
+            @Override
+            public void onRequestFinished(Request<Object> request) {
+                if (request.getTag() == UPDATE_FAVORITE) {
+                    Toast.makeText(getApplicationContext(),"update done", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // ProgressBar
         progressBar = (ProgressBar) findViewById(R.id.autocCompleteProgressBar);
         progressBar.setVisibility(View.GONE);
+
+        // Favorite progressbar
+        favoritesProgressBar = (ProgressBar) findViewById(R.id.favorites_progressbar);
+        favoritesProgressBar.setVisibility(View.GONE);
+
+        // Refresh
+        refreshBtn = (ImageView) findViewById(R.id.refresh_view);
+        refreshBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                refresh();
+            }
+        });
+
+        // Auto Refresh
+        autoFresh = (Switch) findViewById(R.id.autorefresh_view);
+        autoFresh.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Log.d("favorite", "switch checked");
+                } else {
+                    Log.d("favorite", "switch unchecked");
+                }
+
+            }
+        });
+
 
         // Spinners
         // sortBy
@@ -460,6 +531,93 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         stockListAdapter.notifyDataSetChanged();
+    }
+
+    private void refresh() {
+        handler.sendEmptyMessage(FreqTerm.SHOW_FAVORITES_PROGRESS_BAR);
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                getString(R.string.preference_file_key),Context.MODE_PRIVATE);
+
+        // check
+        Set<String> favorites = new HashSet<>();
+        Log.d("favorite", "main activity before refresh:" + favorites.toString());
+        favorites = sharedPref.getStringSet(getString(R.string.preference_symbols_key), favorites);
+        targetListSize.set(favorites.size());
+        crtListSize.set(0);
+        Log.d("favorite", "main activity targetListSize" + targetListSize);
+        for (String symbol : favorites) {
+            refreshOne(symbol);
+        }
+    }
+
+    private void refreshOne(final String symbol) {
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                MY_URL + symbol,
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        StockDetail stockDetail = new StockDetail();
+                        if (stockDetail.loadJSON(response)) {
+                            Log.d("favorite", "main activity getback: " + stockDetail.getSymbol());
+                            updateSingleFavorite(stockDetail);
+                            crtListSize.incrementAndGet();
+                            Log.d("favorite", "main activity success crtListSize: " + crtListSize.get());
+                            Log.d("favorite", "main activity targetListSize: " + targetListSize);
+                            if (crtListSize.get() == targetListSize.get()) {
+                                crtListSize.set(0);
+                                handler.sendEmptyMessage(FreqTerm.HIDE_FAVORITES_PROGRESS_BAR);
+                            }
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getApplicationContext(), "Update " + symbol + "Fail.", Toast.LENGTH_SHORT).show();
+                        crtListSize.incrementAndGet();
+                        Log.d("favorite", "main activity fail:" + symbol);
+                        Log.d("favorite", "main activity fail crtListSize: " + crtListSize);
+                        if (crtListSize.get() == targetListSize.get()) {
+                            crtListSize.set(0);
+                            handler.sendEmptyMessage(FreqTerm.HIDE_FAVORITES_PROGRESS_BAR);
+                        }
+                    }
+                }
+        );
+        request.setTag(UPDATE_FAVORITE);
+        requestQueue.add(request);
+    }
+
+    private void updateSingleFavorite(StockDetail stockDetail) {
+            SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                    getString(R.string.preference_file_key),Context.MODE_PRIVATE);
+            // check
+            Set<String> favorites = new HashSet<>();
+            Log.d("favorite", "main activity before updateSingleFavorite:" + favorites.toString());
+            favorites = sharedPref.getStringSet(getString(R.string.preference_symbols_key), favorites);
+            favorites.add(stockDetail.getSymbol());
+
+            String data = stockDetail.getSymbol()
+                    + "," + stockDetail.getLastPrice()
+                    + "," + stockDetail.getClose();
+            Log.d("favorite", "new data:" + symbol + "," + data);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putStringSet(getString(R.string.preference_symbols_key), favorites);
+            editor.putString(stockDetail.getSymbol(), data);
+            editor.commit();
+    }
+
+    private void autoRefresh() {
+        requestQueue.cancelAll(UPDATE_FAVORITE);
+
+    }
+
+    @Override
+    protected void onPause() {
+        requestQueue.cancelAll(UPDATE_FAVORITE);
+        super.onPause();
     }
 
 }

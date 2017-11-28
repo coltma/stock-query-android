@@ -9,6 +9,8 @@ public class FreqTerm {
     public static final int SHOW_PROGRESS_BAR = 1;
     public static final int HIDE_WEBVIEW_PROGRESS_BAR = 2;
     public static final int SHOW_WEBVIEW_PROGRESS_BAR = 3;
+    public static final int SHOW_FAVORITES_PROGRESS_BAR = 4;
+    public static final int HIDE_FAVORITES_PROGRESS_BAR = 5;
 
     public static final int YES = 1;
     public static final int NO = 0;
