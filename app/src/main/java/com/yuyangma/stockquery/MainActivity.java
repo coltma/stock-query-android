@@ -74,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
     private static String NULL = "null";
     private static final String MY_URL = "http://cs571.us-east-1.elasticbeanstalk.com/" +
             "getquote?outputsize=compact&symbol=";
+    // MillSecs.
+    private static int AUTOREFRESH_GAP = 10000;
 
 
     private String symbol = "";
@@ -82,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private List<StockListItem> favorites = new ArrayList<>();
     private String sortBy = "";
     private String orderBy = "";
-    private ExecutorService executor;
-    private Future<?> results;
+    private AutoRefreshRunnable autoRefreshRunnable = new AutoRefreshRunnable(AUTOREFRESH_GAP);
 
     private RequestQueue requestQueue;
 
@@ -194,8 +195,12 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     Log.d("favorite", "switch checked");
+//                    thread = new AutoRefreshThread();
+//                    thread.start();
+                    handler.post(autoRefreshRunnable);
                 } else {
                     Log.d("favorite", "switch unchecked");
+                    handler.removeCallbacks(autoRefreshRunnable);
                 }
 
             }
@@ -612,12 +617,28 @@ public class MainActivity extends AppCompatActivity {
     private void autoRefresh() {
         requestQueue.cancelAll(UPDATE_FAVORITE);
 
+
     }
 
     @Override
     protected void onPause() {
-        requestQueue.cancelAll(UPDATE_FAVORITE);
+
         super.onPause();
+    }
+
+    class AutoRefreshRunnable implements Runnable {
+        private int delayMillis;
+        public AutoRefreshRunnable(int millis) {
+            delayMillis = millis;
+        }
+        @Override
+        public void run() {
+            // do your stuff - don't create a new runnable here!
+            Log.d("thread", "start autorefresh");
+            requestQueue.cancelAll(UPDATE_FAVORITE);
+            refresh();
+            handler.postDelayed(this, delayMillis);
+        }
     }
 
 }
