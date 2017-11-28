@@ -76,7 +76,7 @@ public class CurrentFragment extends Fragment {
     private ProgressBar webViewProgressBar;
 
     private StockDetailAdapter stockDetailAdapter;
-    private List<StockDetailItem> detailItems;
+    private List<StockDetailItem> detailItems = new ArrayList<>();;
     private StockDetail stockDetail = null;
 
     private RequestQueue requestQueue;
@@ -175,7 +175,6 @@ public class CurrentFragment extends Fragment {
 
         // List View
         listView = (ListView) view.findViewById(R.id.stock_detail_list_view);
-        detailItems = new ArrayList<>();
         stockDetailAdapter = new StockDetailAdapter(getContext(), detailItems);
 
         listView.setAdapter(stockDetailAdapter);
@@ -193,9 +192,9 @@ public class CurrentFragment extends Fragment {
 
 //                      adapter.clear();
                         Log.d("before", stockDetailAdapter.getCount() + "");
-
                         stockDetail = new StockDetail();
                         if (stockDetail.loadJSON(response)) {
+                            detailItems.clear();
                             stockDetail.createStockDetailItems(detailItems);
                             Log.d("after", stockDetailAdapter.getCount() + "");
 //                        detailItems.add(new StockDetailItem("abc", "dfg"));
@@ -221,7 +220,15 @@ public class CurrentFragment extends Fragment {
                     }
                 }
         );
-        requestQueue.add(request);
+        // When switch tabs, should not reload data. (But spec reload webview.)
+        Log.d("Current", "detailItems size:" + detailItems.size());
+        if (detailItems.size() == 0) {
+            requestQueue.add(request);
+        } else {
+            // Spec enables changeBtn and remove webView.
+            changeBtn.setTextColor(getContext().getColor(R.color.colorBlack));
+            enableChangeClickListener(indicator);
+        }
 
         webView = (WebView) view.findViewById(R.id.webview_current);
         webView.setVisibility(View.GONE);
@@ -247,6 +254,8 @@ public class CurrentFragment extends Fragment {
         Log.d("Created", symbol);
 //        textView.setText("page -> " + page);
     }
+
+
 
     private class MyWebViewClient extends WebViewClient {
         @Override
