@@ -13,6 +13,8 @@ public class FreqTerm {
     public static final int YES = 1;
     public static final int NO = 0;
 
+    public static final String DETAIL_TAG = "detail_tag";
+
     public static final String SYMBOL_KEY = "symbol";
     public static final String PAGE_KEY = "page";
     public static final String FAVORITE_KEY = "favorite";
@@ -23,4 +25,7 @@ public class FreqTerm {
     public static final String CHANGE_SORT = "Change";
     public static final String ASCENDING = "Ascending";
     public static final String DESCENDING = "Descending";
+
+    public static final String HISTORICAL = "HISTORICAL";
+
 }

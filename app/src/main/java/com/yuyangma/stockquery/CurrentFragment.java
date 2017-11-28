@@ -221,6 +221,7 @@ public class CurrentFragment extends Fragment {
                     }
                 }
         );
+        request.setTag(FreqTerm.DETAIL_TAG);
         requestQueue.add(request);
 
         webView = (WebView) view.findViewById(R.id.webview_current);
@@ -365,5 +366,12 @@ public class CurrentFragment extends Fragment {
         editor.putString(stockDetail.getSymbol(), data);
         editor.commit();
         Log.d("favorite", "current fragment after update:" + favorites.toString());
+    }
+
+    @Override
+    public void onDestroy() {
+        //In case of thread operates other view after fargment destoried.
+        requestQueue.cancelAll(FreqTerm.DETAIL_TAG);
+        super.onDestroy();
     }
 }

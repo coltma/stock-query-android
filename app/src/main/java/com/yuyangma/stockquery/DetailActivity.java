@@ -44,7 +44,14 @@ public class DetailActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return CurrentFragment.newInstance(position, symbol, isFavorited);
+            switch (position) {
+                case 0:
+                    return CurrentFragment.newInstance(position, symbol, isFavorited);
+                case 1:
+                    return HistoricalFragment.newInstance(position, symbol);
+                default:
+                    return CurrentFragment.newInstance(position, symbol, isFavorited);
+            }
         }
 
         @Override
@@ -96,4 +103,5 @@ public class DetailActivity extends AppCompatActivity {
 
 
     }
+
 }
