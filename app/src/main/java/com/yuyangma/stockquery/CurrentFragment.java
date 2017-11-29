@@ -72,6 +72,7 @@ public class CurrentFragment extends Fragment {
     // SMA, CCI, EMA...
     private String indicator = "";
     private String ret = "";
+    private boolean validSymbol = true;
 
     private TextView textView;
     private Button fbBtn;
@@ -82,6 +83,7 @@ public class CurrentFragment extends Fragment {
     private ListView listView;
     private ProgressBar progressBar;
     private ProgressBar webViewProgressBar;
+    private TextView errorTextView;
 
     private StockDetailAdapter stockDetailAdapter;
     private List<StockDetailItem> detailItems = new ArrayList<>();;
@@ -109,6 +111,13 @@ public class CurrentFragment extends Fragment {
                 case FreqTerm.SHOW_WEBVIEW_PROGRESS_BAR:
                     webView.setVisibility(View.GONE);
                     webViewProgressBar.setVisibility(View.VISIBLE);
+                    break;
+                case FreqTerm.SHOW_ERROR_TEXTVIEW:
+                    validSymbol = false;
+                    webViewProgressBar.setVisibility(View.GONE);
+                    webView.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.GONE);
+                    errorTextView.setVisibility(View.VISIBLE);
                     break;
                 default:
                     break;
@@ -148,6 +157,9 @@ public class CurrentFragment extends Fragment {
         if (isFavorited) {
             starBtn.setBackground(getResources().getDrawable(R.mipmap.ic_star_filled, null));
         }
+
+        // Error TextView
+        errorTextView = (TextView) view.findViewById(R.id.current_error);
 
         // Progress bar
         progressBar = (ProgressBar) view.findViewById(R.id.fragment_current_progressbar);
@@ -189,6 +201,9 @@ public class CurrentFragment extends Fragment {
         fbBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!validSymbol) {
+                    return ;
+                }
                 String shareSymbol = symbol;
                 String shareIndicator = indicator;
                 if (shareSymbol.isEmpty()) {
@@ -237,6 +252,7 @@ public class CurrentFragment extends Fragment {
                         Log.d("before", stockDetailAdapter.getCount() + "");
                         stockDetail = new StockDetail();
                         if (stockDetail.loadJSON(response)) {
+                            validSymbol = true;
                             detailItems.clear();
                             stockDetail.createStockDetailItems(detailItems);
                             Log.d("after", stockDetailAdapter.getCount() + "");
@@ -248,7 +264,7 @@ public class CurrentFragment extends Fragment {
                             }
                             enableStarBtn();
                         } else {
-                            // TODO
+                            handler.sendEmptyMessage(FreqTerm.SHOW_ERROR_TEXTVIEW);
                             return;
                         }
                         handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
@@ -260,6 +276,7 @@ public class CurrentFragment extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
+                        handler.sendEmptyMessage(FreqTerm.SHOW_ERROR_TEXTVIEW);
                     }
                 }
         );
@@ -273,6 +290,7 @@ public class CurrentFragment extends Fragment {
             progressBar.setVisibility(View.GONE);
             changeBtn.setTextColor(getContext().getColor(R.color.colorBlack));
             enableChangeClickListener(indicator);
+            enableStarBtn();
         }
 
         webView = (WebView) view.findViewById(R.id.webview_current);
@@ -378,6 +396,9 @@ public class CurrentFragment extends Fragment {
         starBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!validSymbol) {
+                    return ;
+                }
                 if (isFavorited) {
                     starBtn.setBackground(getResources().getDrawable(R.mipmap.ic_star_empty, null));
                     removeFromFavoriteList(symbol);
