@@ -49,11 +49,17 @@
     <string name="preference_file_key">com.yuyangma.stockquery.SYMBOLS</string>
     <string name="preference_symbols_key">symbols</string>
 
+    // Favorite List text
     <string name="long_click_menu_title">Remove from favorites?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="selected_yes">Selected Yes</string>
     <string name="selected_no">Selected No</string>
+
+    // Toast Text for Facebook share
+    <string name="facebook_share_success">Shared successfully!</string>
+    <string name="facebook_share_cancel">Share cancelled</string>
+    <string name="facebook_share_error">Error on Share</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

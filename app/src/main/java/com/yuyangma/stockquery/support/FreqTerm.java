@@ -20,6 +20,8 @@ public class FreqTerm {
     public static final String FAVORITE_KEY = "favorite";
     public static final String IS_FAVORITE_KEY = "isFavorite";
 
+    public static final String PRICE= "Price";
+
     public static final String SYMBOL_SORT = "Symbol";
     public static final String PRICE_SORT = "Price";
     public static final String CHANGE_SORT = "Change";

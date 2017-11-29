@@ -45,30 +45,36 @@
                     android:layout_width="48dp"
                     android:layout_height="match_parent" />
             </LinearLayout>
-            <ProgressBar
-                android:id="@+id/fragment_current_progressbar"
-                android:layout_marginTop="160dp"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <ListView
-                android:id="@+id/stock_detail_list_view"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="365dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp">
+                android:layout_height="wrap_content">
+                <ProgressBar
+                    android:id="@+id/fragment_current_progressbar"
+                    android:layout_marginTop="160dp"
+                    android:layout_centerVertical="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <ListView
+                    android:id="@+id/stock_detail_list_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="365dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp">
 
-            </ListView>
-
+                </ListView>
+            </RelativeLayout>
             <LinearLayout
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <TextView
                     android:id="@+id/indicator_text_view"
                     android:text="@string/indicators"
-                    android:textSize="20dp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="@color/colorBlack"
                     android:textAlignment="center"
@@ -86,13 +92,14 @@
                     android:id="@+id/change_btn"
                     android:text="@string/change"
                     android:textColor="@color/colorBlack"
-                    android:textSize="20dp"
+                    android:textSize="20sp"
                     android:textAlignment="center"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content" />
             </LinearLayout>
             <RelativeLayout
+                android:paddingTop="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
                 <ProgressBar

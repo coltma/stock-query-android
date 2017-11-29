@@ -38,6 +38,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.share.Sharer;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
 import com.yuyangma.stockquery.model.StockDetail;
@@ -85,9 +88,7 @@ public class CurrentFragment extends Fragment {
     private StockDetail stockDetail = null;
 
     private RequestQueue requestQueue;
-    CallbackManager callbackManager;
-    ShareDialog shareDialog;
-
+    private CallbackManager callbackManager;
 
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
@@ -180,6 +181,41 @@ public class CurrentFragment extends Fragment {
         });
         spinner.setAdapter(spinnerAdapter);
 
+
+        //Facebook share.
+        callbackManager = CallbackManager.Factory.create();
+        fbBtn = (Button) view.findViewById(R.id.fragment_facebook_btn);
+        fbBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String shareSymbol = symbol;
+                String shareIndicator = indicator;
+                if (shareSymbol.isEmpty()) {
+                    Toast.makeText(getContext().getApplicationContext(),
+                            "Please select stock symbol first.",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                // Default use "Price".
+                if (shareIndicator.isEmpty()) {
+                    shareIndicator = FreqTerm.PRICE;
+                }
+                String type = "\"" + shareIndicator + "\"";;
+                String tmpSymbol = "\"" + shareSymbol + "\"";
+                String params = type + "," + tmpSymbol;
+                handler.sendEmptyMessage(FreqTerm.SHOW_PROGRESS_BAR);
+                webView.evaluateJavascript("javascript:exportChart(" + params.toUpperCase() + ");" , new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        Log.d("eval-back", value);
+                        // When JavaScript done, it calls facebook share.
+                        ret = value;
+
+                    }
+                });
+            }
+        });
+
         // List View
         listView = (ListView) view.findViewById(R.id.stock_detail_list_view);
         stockDetailAdapter = new StockDetailAdapter(getContext(), detailItems);
@@ -240,7 +276,10 @@ public class CurrentFragment extends Fragment {
         webView = (WebView) view.findViewById(R.id.webview_current);
         webView.setVisibility(View.GONE);
         // Enable JavaScript call Android.
-        webView.addJavascriptInterface(new WebAppInterface(getContext(), this, handler), "Android");
+        webView.addJavascriptInterface(new WebAppInterface(getContext(),
+                this,
+                callbackManager,
+                handler), "Android");
         // Disable other broswer.
         webView.setWebViewClient(new MyWebViewClient());
 
@@ -251,34 +290,6 @@ public class CurrentFragment extends Fragment {
         CookieManager.getInstance().flush();
 
         webView.loadUrl("http://www-scf.usc.edu/~yuyangma/superchart.html");
-
-
-        //Facebook share.
-        callbackManager = CallbackManager.Factory.create();
-        fbBtn = (Button) view.findViewById(R.id.fragment_facebook_btn);
-        fbBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (indicator.isEmpty() || symbol.isEmpty()) {
-                    Toast.makeText(getContext().getApplicationContext(),
-                            "Please select chart type and stock symbol first.",
-                            Toast.LENGTH_SHORT).show();
-                }
-                String type = "\"" + indicator + "\"";;
-                String tmpSymbol = "\"" + symbol + "\"";
-                String params = type + "," + tmpSymbol;
-                webView.evaluateJavascript("javascript:exportChart(" + params.toUpperCase() + ");" , new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                        Log.d("eval-back", value);
-                        // When JavaScript done, it calls facebook share.
-                        ret = value;
-
-                    }
-                });
-            }
-        });
-
 
         return view;
     }
@@ -346,6 +357,13 @@ public class CurrentFragment extends Fragment {
 
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("share", "onActivityResult");
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     private void disableChangeClickListener() {
