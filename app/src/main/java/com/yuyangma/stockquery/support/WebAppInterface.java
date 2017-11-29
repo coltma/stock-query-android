@@ -29,8 +29,16 @@ public class WebAppInterface {
     Handler handler;
     CallbackManager callbackManager;
 
-    /** Instantiate the interface and set the context */
+    /** Current fragment: instantiate the interface and set the context */
     public WebAppInterface(Context context, CurrentFragment fragment, CallbackManager callbackManager, Handler handler) {
+        this.mContext = context;
+        this.handler = handler;
+        this.fragment = fragment;
+        this.callbackManager = callbackManager;
+    }
+
+    /** Historical fragment: instantiate the interface and set the context */
+    public WebAppInterface(Context context, Handler handler) {
         this.mContext = context;
         this.handler = handler;
         this.fragment = fragment;
