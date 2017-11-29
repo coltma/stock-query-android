@@ -61,6 +61,9 @@
     <string name="facebook_share_cancel">Share cancelled</string>
     <string name="facebook_share_error">Error on Share</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    // Error for data
+    <string name="load_data_fail">Fail to load data.</string>
+    <string name="load_new_data_fail">Fail to load news data.</string>
+
+
 </resources>

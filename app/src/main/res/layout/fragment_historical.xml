@@ -6,16 +6,32 @@
 <RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/historical_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="@string/load_data_fail"
+        android:textSize="24sp"
+        android:textAlignment="center"
+        android:visibility="gone" />
+
     <ProgressBar
         android:id="@+id/webview_progessbar_historical"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
     <WebView
         android:id="@+id/webview_historical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content" >
+
+    </WebView>
+
 </RelativeLayout>
 
 </FrameLayout>

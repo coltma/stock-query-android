@@ -19,6 +19,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.yuyangma.stockquery.support.FreqTerm;
 import com.yuyangma.stockquery.support.WebAppInterface;
@@ -33,10 +34,12 @@ import com.yuyangma.stockquery.support.WebAppInterface;
 public class HistoricalFragment extends Fragment {
     private String symbol;
     private int page;
-    private WebView webView;
     private String indicator;
     private String ret;
+    private boolean validData = true;
 
+    private WebView webView;
+    private TextView errorTextView;
 
     private ProgressBar webViewProgressBar;
     @SuppressLint("HandlerLeak")
@@ -52,6 +55,12 @@ public class HistoricalFragment extends Fragment {
                 case FreqTerm.SHOW_WEBVIEW_PROGRESS_BAR:
                     webView.setVisibility(View.GONE);
                     webViewProgressBar.setVisibility(View.VISIBLE);
+                    break;
+                case FreqTerm.SHOW_ERROR_TEXTVIEW:
+                    validData = false;
+                    webViewProgressBar.setVisibility(View.GONE);
+                    webView.setVisibility(View.GONE);
+                    errorTextView.setVisibility(View.VISIBLE);
                     break;
                 default:
                     break;
@@ -97,6 +106,9 @@ public class HistoricalFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_historical, container, false);
 
+        // Error TextView
+        errorTextView = (TextView)view.findViewById(R.id.historical_error);
+
         // Progress bar
         webViewProgressBar = (ProgressBar) view.findViewById(R.id.webview_progessbar_historical);
 
@@ -115,9 +127,7 @@ public class HistoricalFragment extends Fragment {
 
         CookieManager.getInstance().removeAllCookies(null);
         CookieManager.getInstance().flush();
-
         webView.loadUrl("http://www-scf.usc.edu/~yuyangma/superchart.html");
-
         indicator = FreqTerm.HISTORICAL;
         handler.sendEmptyMessage(FreqTerm.SHOW_WEBVIEW_PROGRESS_BAR);
 
