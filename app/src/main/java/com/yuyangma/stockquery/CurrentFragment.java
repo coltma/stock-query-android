@@ -151,6 +151,7 @@ public class CurrentFragment extends Fragment {
 
         // Progress bar
         progressBar = (ProgressBar) view.findViewById(R.id.fragment_current_progressbar);
+        progressBar.setVisibility(View.GONE);
 
         // Webview Progress bar
         webViewProgressBar = (ProgressBar) view.findViewById(R.id.webview_progessbar);
@@ -223,7 +224,6 @@ public class CurrentFragment extends Fragment {
         listView.setAdapter(stockDetailAdapter);
 
         // List View StockDetail
-        handler.sendEmptyMessage(FreqTerm.SHOW_PROGRESS_BAR);
         requestQueue = Volley.newRequestQueue(getContext());
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -266,9 +266,11 @@ public class CurrentFragment extends Fragment {
         // When switch tabs, should not reload data. (But spec reload webview.)
         Log.d("Current", "detailItems size:" + detailItems.size());
         if (detailItems.size() == 0) {
+            handler.sendEmptyMessage(FreqTerm.SHOW_PROGRESS_BAR);
             requestQueue.add(request);
         } else {
             // Spec enables changeBtn and hide webView.
+            progressBar.setVisibility(View.GONE);
             changeBtn.setTextColor(getContext().getColor(R.color.colorBlack));
             enableChangeClickListener(indicator);
         }

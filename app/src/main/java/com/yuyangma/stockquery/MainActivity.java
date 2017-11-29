@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String MY_URL = "http://cs571.us-east-1.elasticbeanstalk.com/" +
             "getquote?outputsize=compact&symbol=";
     // MillSecs.
-    private static int AUTOREFRESH_GAP = 10000;
+    private static int AUTOREFRESH_GAP = 5000;
 
 
     private String symbol = "";
@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
 //                    thread.start();
                     handler.post(autoRefreshRunnable);
                 } else {
+                    requestQueue.cancelAll(UPDATE_FAVORITE);
                     Log.d("favorite", "switch unchecked");
                     handler.removeCallbacks(autoRefreshRunnable);
                 }
@@ -580,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), "Update " + symbol + "Fail.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Update " + symbol + " Fail.", Toast.LENGTH_SHORT).show();
                         crtListSize.incrementAndGet();
                         Log.d("favorite", "main activity fail:" + symbol);
                         Log.d("favorite", "main activity fail crtListSize: " + crtListSize);

@@ -49,6 +49,8 @@ public class DetailActivity extends AppCompatActivity {
                     return CurrentFragment.newInstance(position, symbol, isFavorited);
                 case 1:
                     return HistoricalFragment.newInstance(position, symbol);
+                case 2:
+                    return NewsFragment.newInstance(position, symbol);
                 default:
                     return CurrentFragment.newInstance(position, symbol, isFavorited);
             }
