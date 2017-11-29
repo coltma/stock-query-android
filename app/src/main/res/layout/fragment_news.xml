@@ -4,6 +4,15 @@
     android:layout_height="match_parent"
     tools:context="com.yuyangma.stockquery.NewsFragment">
 
+    <TextView
+        android:id="@+id/news_error"
+        android:textAlignment="center"
+        android:layout_gravity="center"
+        android:text="@string/load_new_data_fail"
+        android:textSize="24sp"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
     <ProgressBar
         android:id="@+id/news_progressbar"
         android:layout_gravity="center"

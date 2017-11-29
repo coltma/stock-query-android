@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -65,6 +66,7 @@ public class NewsFragment extends Fragment {
     private ListView listView;
     private ProgressBar progressBar;
     private StockNewsAdapter stockNewsAdapter;
+    private TextView errorTextView;
 
     private RequestQueue requestQueue;
 
@@ -80,6 +82,9 @@ public class NewsFragment extends Fragment {
                 case FreqTerm.SHOW_PROGRESS_BAR:
                     progressBar.setVisibility(View.VISIBLE);
                     break;
+                case FreqTerm.SHOW_ERROR_TEXTVIEW:
+                    progressBar.setVisibility(View.GONE);
+                    errorTextView.setVisibility(View.VISIBLE);
                 default:
                     break;
             }
@@ -122,6 +127,11 @@ public class NewsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_news, container, false);
+
+        // Error TextView
+        errorTextView = (TextView) view.findViewById(R.id.news_error);
+
+        // ListView
         listView = (ListView) view.findViewById(R.id.news_list_view);
         newsList = new ArrayList<>();
         stockNewsAdapter = new StockNewsAdapter(getContext(), newsList);
@@ -158,6 +168,7 @@ public class NewsFragment extends Fragment {
                     public void onErrorResponse(VolleyError error) {
                         Log.e("News", error.getMessage(), error);
                         handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
+                        handler.sendEmptyMessage(FreqTerm.SHOW_ERROR_TEXTVIEW);
                     }
                 }
         );
@@ -197,6 +208,7 @@ public class NewsFragment extends Fragment {
             stockNewsAdapter.notifyDataSetChanged();
         } catch (JSONException e) {
             e.printStackTrace();
+            handler.sendEmptyMessage(FreqTerm.SHOW_ERROR_TEXTVIEW);
         }
         // console.log('indexOf' + (items[.indexOf('article') === -1));
     }
