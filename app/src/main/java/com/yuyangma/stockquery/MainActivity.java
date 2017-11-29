@@ -159,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         // Volley
         requestQueue = Volley.newRequestQueue(this);
         requestQueue.addRequestFinishedListener(new RequestQueue.RequestFinishedListener<Object>() {
@@ -267,7 +268,11 @@ public class MainActivity extends AppCompatActivity {
         getQuoteViewBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // If data not from item clicked:
                 if (symbol == null || symbol.isEmpty()) {
+                    symbol = autoCompleteTextView.getText().toString().trim().toUpperCase();
+                }
+                if (symbol.isEmpty()) {
                     Toast.makeText(getApplicationContext(), R.string.no_symbol_error, Toast.LENGTH_SHORT).show();;
                     return;
                 }
@@ -306,7 +311,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // ListView + Databinding
+        // ListView + update favorite list + Data loading,
+        refresh();
         stockListAdapter = new StockListAdapter(this, readFavoriteListData(favorites));
         listView.setAdapter(stockListAdapter);
         Log.d("favorite", "main activity onStart called.");

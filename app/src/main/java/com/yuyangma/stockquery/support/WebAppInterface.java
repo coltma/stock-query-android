@@ -52,6 +52,13 @@ public class WebAppInterface {
         handler.sendEmptyMessage(FreqTerm.HIDE_WEBVIEW_PROGRESS_BAR);
     }
 
+    /** JS load data async and hide progress bar for webview in Android. */
+    @JavascriptInterface
+    public void onError() {
+        Log.d("JS-Android", "onError");
+        handler.sendEmptyMessage(FreqTerm.SHOW_ERROR_TEXTVIEW);
+    }
+
     /** JS load data async and show facebook share. */
     @JavascriptInterface
     public void facebookShare(String url) {
