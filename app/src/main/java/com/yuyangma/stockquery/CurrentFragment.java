@@ -24,10 +24,12 @@ import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -35,6 +37,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.CallbackManager;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareDialog;
 import com.yuyangma.stockquery.model.StockDetail;
 import com.yuyangma.stockquery.model.StockDetailItem;
 import com.yuyangma.stockquery.support.FreqTerm;
@@ -56,8 +61,8 @@ public class CurrentFragment extends Fragment {
     private static final int POS_SYMBOL = 0;
     private static final int POS_PRICE = 1;
     private static final int POS_CHANGE = 2;
-    private static final String MY_URL = "http://cs571.us-east-1.elasticbeanstalk.com/" +
-            "getquote?outputsize=compact&symbol=";
+    private static final String MY_AWS = "http://cs571.us-east-1.elasticbeanstalk.com/";
+    private static final String MY_URL = MY_AWS + "getquote?outputsize=compact&symbol=";
 
     private String symbol = "";
     private boolean isFavorited = false;
@@ -80,6 +85,8 @@ public class CurrentFragment extends Fragment {
     private StockDetail stockDetail = null;
 
     private RequestQueue requestQueue;
+    CallbackManager callbackManager;
+    ShareDialog shareDialog;
 
 
     @SuppressLint("HandlerLeak")
@@ -233,7 +240,7 @@ public class CurrentFragment extends Fragment {
         webView = (WebView) view.findViewById(R.id.webview_current);
         webView.setVisibility(View.GONE);
         // Enable JavaScript call Android.
-        webView.addJavascriptInterface(new WebAppInterface(getContext(), handler), "Android");
+        webView.addJavascriptInterface(new WebAppInterface(getContext(), this, handler), "Android");
         // Disable other broswer.
         webView.setWebViewClient(new MyWebViewClient());
 
@@ -244,6 +251,35 @@ public class CurrentFragment extends Fragment {
         CookieManager.getInstance().flush();
 
         webView.loadUrl("http://www-scf.usc.edu/~yuyangma/superchart.html");
+
+
+        //Facebook share.
+        callbackManager = CallbackManager.Factory.create();
+        fbBtn = (Button) view.findViewById(R.id.fragment_facebook_btn);
+        fbBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (indicator.isEmpty() || symbol.isEmpty()) {
+                    Toast.makeText(getContext().getApplicationContext(),
+                            "Please select chart type and stock symbol first.",
+                            Toast.LENGTH_SHORT).show();
+                }
+                String type = "\"" + indicator + "\"";;
+                String tmpSymbol = "\"" + symbol + "\"";
+                String params = type + "," + tmpSymbol;
+                webView.evaluateJavascript("javascript:exportChart(" + params.toUpperCase() + ");" , new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        Log.d("eval-back", value);
+                        // When JavaScript done, it calls facebook share.
+                        ret = value;
+
+                    }
+                });
+            }
+        });
+
+
         return view;
     }
 

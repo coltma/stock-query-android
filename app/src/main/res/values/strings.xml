@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">StockQuery</string>
 
+    <string name="facebook_app_id">1692816167418180</string>
+
     <string name="main_title">Stock Market Search</string>
     <string name="main_getquote">Get Quote</string>
     <string name="main_clear">Clear</string>
