@@ -1,12 +1,18 @@
 package com.yuyangma.stockquery;
 
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -54,12 +60,31 @@ public class NewsFragment extends Fragment {
 
     private int page;
     private String symbol;
+    private List<StockNews> newsList;
 
     private ListView listView;
     private ProgressBar progressBar;
     private StockNewsAdapter stockNewsAdapter;
 
     private RequestQueue requestQueue;
+
+    @SuppressLint("HandlerLeak")
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case FreqTerm.HIDE_PROGRESS_BAR:
+                    progressBar.setVisibility(View.GONE);
+                    break;
+                case FreqTerm.SHOW_PROGRESS_BAR:
+                    progressBar.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 
 
     public NewsFragment() {
@@ -98,36 +123,50 @@ public class NewsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_news, container, false);
         listView = (ListView) view.findViewById(R.id.news_list_view);
-        final List<StockNews> newsList = new ArrayList<StockNews>();
+        newsList = new ArrayList<>();
         stockNewsAdapter = new StockNewsAdapter(getContext(), newsList);
+        listView.setAdapter(stockNewsAdapter);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (newsList.get(position) != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(newsList.get(position).getLink()));
+                    startActivity(intent);
+                }
+            }
+        });
+
+        // Progress bar
+        progressBar = (ProgressBar) view.findViewById(R.id.news_progressbar);
+        progressBar.setVisibility(View.VISIBLE);
 
         requestQueue = Volley.newRequestQueue(getContext());
-//        "http://cs571.us-east-1.elasticbeanstalk.com/getxml?symbol=" + "AAPL",
-
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
-                "http://cs571.us-east-1.elasticbeanstalk.com/getxml?symbol=" + "AAPL",
+                "http://cs571.us-east-1.elasticbeanstalk.com/getxml?symbol=" + symbol,
                 null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         readData(response, newsList);
+                        handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e("TAG", error.getMessage(), error);
+                        Log.e("News", error.getMessage(), error);
+                        handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
                     }
                 }
-
         );
-        requestQueue.add(request);
+        // Only load data when it has not been loaded.
+        if (newsList.size() == 0) {
+            requestQueue.add(request);
+        }
         return view;
     }
-
-
 
     private void readData(JSONObject data, List<StockNews> arr) {
         int size = 5;
@@ -155,6 +194,7 @@ public class NewsFragment extends Fragment {
                                 + "," + item.getString(AUTHOR) );
                 i++;
             }
+            stockNewsAdapter.notifyDataSetChanged();
         } catch (JSONException e) {
             e.printStackTrace();
         }

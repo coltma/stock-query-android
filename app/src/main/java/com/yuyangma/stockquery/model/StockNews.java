@@ -1,6 +1,7 @@
 package com.yuyangma.stockquery.model;
 
 import android.net.Uri;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,10 +23,20 @@ public class StockNews {
     private String link;
 
     public StockNews(String link, String title, String date, String author) {
-        this.title = title;
-        this.author = author;
-        this.date = date;
-        this.link = "";
+        this.title = title.replaceAll("\"", "").
+                replaceAll("\\[", "")
+                .replaceAll("\\]","");
+        this.author = author.replaceAll("\"", "").
+                replaceAll("\\[", "")
+                .replaceAll("\\]","");
+        this.date = date.replaceAll("\"", "").
+                replaceAll("\\[", "")
+                .replaceAll("\\]","");
+        this.link = link.replaceAll("\"", "").
+                replaceAll("\\[", "")
+                .replaceAll("\\]","")
+                .replaceAll("\\\\","");
+        Log.d("news", this.link);
     }
 
     public String getTitle() {
