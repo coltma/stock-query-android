@@ -268,7 +268,7 @@ public class CurrentFragment extends Fragment {
         if (detailItems.size() == 0) {
             requestQueue.add(request);
         } else {
-            // Spec enables changeBtn and remove webView.
+            // Spec enables changeBtn and hide webView.
             changeBtn.setTextColor(getContext().getColor(R.color.colorBlack));
             enableChangeClickListener(indicator);
         }
@@ -428,5 +428,12 @@ public class CurrentFragment extends Fragment {
         editor.putString(stockDetail.getSymbol(), data);
         editor.commit();
         Log.d("favorite", "current fragment after update:" + favorites.toString());
+    }
+
+    @Override
+    public void onDestroy() {
+        //In case of thread operates other view after fargment destoried.
+        requestQueue.cancelAll(FreqTerm.DETAIL_TAG);
+        super.onDestroy();
     }
 }
