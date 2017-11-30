@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -66,6 +67,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.yuyangma.stockquery.support.FreqTerm.DESCENDING;
+import static com.yuyangma.stockquery.support.FreqTerm.HIDE_FAVORITES_PROGRESS_BAR;
 import static com.yuyangma.stockquery.support.FreqTerm.SYMBOL_SORT;
 
 public class MainActivity extends AppCompatActivity {
@@ -76,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
             "getquote?outputsize=compact&symbol=";
     // MillSecs.
     private static int AUTOREFRESH_GAP = 5000;
+
+    // Maximum listview item show with warp content
+    private static int MAX_LIST_ITEMS = 6;
 
 
     private String symbol = "";
@@ -141,6 +146,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // ListView
+        /**
+         * Set MinHeight = 0, Height to fill constraint, so the listview
+         * will wrap content until it reached the constraint.
+         */
         listView = (ListView) findViewById(R.id.favorites_list_view);
         registerForContextMenu(listView);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -203,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
                     requestQueue.cancelAll(UPDATE_FAVORITE);
                     Log.d("favorite", "switch unchecked");
                     handler.removeCallbacks(autoRefreshRunnable);
+                    handler.sendEmptyMessage(HIDE_FAVORITES_PROGRESS_BAR);
                 }
 
             }
@@ -315,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
         refresh();
         stockListAdapter = new StockListAdapter(this, readFavoriteListData(favorites));
         listView.setAdapter(stockListAdapter);
-        Log.d("favorite", "main activity onStart called.");
+        updateListViewHeight();
     }
 
 
@@ -440,6 +450,8 @@ public class MainActivity extends AppCompatActivity {
                 // Second, Remove from ListView.
                 stockListAdapter.remove(toRemovePos);
                 stockListAdapter.notifyDataSetChanged();
+                // Adapter update first,then update listview height.
+                updateListViewHeight();
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.selected_yes),
                         Toast.LENGTH_SHORT).show();
@@ -487,8 +499,6 @@ public class MainActivity extends AppCompatActivity {
                         Double.parseDouble(arr[2])));
             }
         }
-        Log.d("favorite", "main activity after read:" + favorites.toString());
-
         return favorites;
     }
 
@@ -619,6 +629,23 @@ public class MainActivity extends AppCompatActivity {
             editor.putStringSet(getString(R.string.preference_symbols_key), favorites);
             editor.putString(stockDetail.getSymbol(), data);
             editor.commit();
+    }
+
+    private void updateListViewHeight() {
+        View item = stockListAdapter.getView(0, null, listView);
+        item.measure(0, 0);
+        ViewGroup.LayoutParams params =  listView.getLayoutParams();
+        Log.d("listview", "main activity listview height before :" + params.height);
+        if(stockListAdapter.getCount() >= MAX_LIST_ITEMS){
+            params.height = (int) (item.getMeasuredHeight() * (MAX_LIST_ITEMS - 1.5));
+            Log.d("listview", "main activity listview exceed height after :" + params.height);
+        } else {
+            params.height = ConstraintLayout.LayoutParams.WRAP_CONTENT;
+            Log.d("listview", "main activity listview within height after :" + params.height);
+        }
+        listView.setLayoutParams(params);
+        Log.d("favorite", "main activity after read:" + favorites.toString());
+        Log.d("favorite", "main activity onStart called.");
     }
 
     private void autoRefresh() {
