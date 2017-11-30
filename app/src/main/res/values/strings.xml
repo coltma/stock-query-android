@@ -57,7 +57,7 @@
     <string name="selected_no">Selected No</string>
 
     // Toast Text for Facebook share
-    <string name="facebook_share_success">Shared successfully!</string>
+    <string name="facebook_share_success">Share dialog opens successfully!</string>
     <string name="facebook_share_cancel">Share cancelled</string>
     <string name="facebook_share_error">Error on Share</string>
 
