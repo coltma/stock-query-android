@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import com.yuyangma.stockquery.R;
 import com.yuyangma.stockquery.model.StockListItem;
 import com.yuyangma.stockquery.model.StockNews;
+import com.yuyangma.stockquery.support.FreqTerm;
 
 import java.util.List;
 
@@ -66,8 +67,8 @@ public class StockNewsAdapter extends ViewHolderAdapter {
     protected void bindViewHolder(ViewHolderAdapter.ViewHolder viewHolder, int position) {
         StockNews item = (StockNews) getItem(position);
         ((StockNewsViewHolder) viewHolder).title.setText(item.getTitle());
-        ((StockNewsViewHolder) viewHolder).author.setText(item.getAuthor());
-        ((StockNewsViewHolder) viewHolder).date.setText(item.getDate());
+        ((StockNewsViewHolder) viewHolder).author.setText(FreqTerm.AUTHOR + item.getAuthor());
+        ((StockNewsViewHolder) viewHolder).date.setText(FreqTerm.DATE + item.getDate());
     }
 }
 
