@@ -33,4 +33,8 @@ public class FreqTerm {
 
     public static final String HISTORICAL = "HISTORICAL";
 
+    // News TextView Support Text
+    public static final String AUTHOR = "Author: ";
+    public static final String DATE = "Date: ";
+
 }
