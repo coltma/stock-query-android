@@ -117,7 +117,10 @@ public class CurrentFragment extends Fragment {
                     webViewProgressBar.setVisibility(View.GONE);
                     webView.setVisibility(View.VISIBLE);
                     progressBar.setVisibility(View.GONE);
-                    errorTextView.setVisibility(View.VISIBLE);
+                    // If only fail in chart, keep detail view visible.
+                    if (detailItems.size() == 0) {
+                        errorTextView.setVisibility(View.VISIBLE);
+                    }
                     break;
                 default:
                     break;
@@ -382,7 +385,9 @@ public class CurrentFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("share", "onActivityResult");
+        Log.d("share", "onActivityResult requestCode: " + requestCode);
+        Log.d("share", "onActivityResult resultCode: " + resultCode);
+        Log.d("share", "onActivityResult data: " + data.toString());
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
