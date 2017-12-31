@@ -387,7 +387,6 @@ public class CurrentFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("share", "onActivityResult requestCode: " + requestCode);
         Log.d("share", "onActivityResult resultCode: " + resultCode);
-        Log.d("share", "onActivityResult data: " + data.toString());
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 

@@ -66,9 +66,10 @@ public class WebAppInterface {
         handler.sendEmptyMessage(FreqTerm.HIDE_PROGRESS_BAR);
         ShareDialog shareDialog = new ShareDialog(this.fragment);
         shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>(){
+
             @Override
             public void onSuccess(Sharer.Result result) {
-                Log.d("share", "success");
+                Log.d("share", "success:" + result.getPostId());
                 Toast.makeText(mContext.getApplicationContext(),
                         mContext.getResources().getString(R.string.facebook_share_success),
                         Toast.LENGTH_SHORT).show();

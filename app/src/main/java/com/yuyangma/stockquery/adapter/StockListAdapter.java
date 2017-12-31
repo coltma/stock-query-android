@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import com.yuyangma.stockquery.R;
 import com.yuyangma.stockquery.model.StockListItem;
@@ -49,6 +50,7 @@ public class StockListAdapter extends ViewHolderAdapter {
     @Override
     protected ViewHolderAdapter.ViewHolder createViewHolder(ViewGroup parent, int position) {
         View view = LayoutInflater.from(context).inflate(R.layout.favorites_list_view_item, parent, false);
+
         return new StockListViewHolder(view);
     }
 

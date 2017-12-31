@@ -67,6 +67,7 @@ public class StockDetail {
             String timestamp = metaData.getString(LAST_REFRESHED);
             boolean closed = timestamp.length() != TIMESTAMP_SHORT_LENGTH;
             // Eastern daylight time or est.
+            Log.d("detail", "timestamp:" + timestamp);
             timestamp = timestamp + (closed ? " 16:00:00" : "");
             // Display EDT or EST according date.
             SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
